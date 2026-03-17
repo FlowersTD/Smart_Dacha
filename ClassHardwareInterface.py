@@ -2,33 +2,49 @@
 # Rabbana atina fid-dunya hasanatan 
 # wa fil-akhirati hasanatan 
 # wa qina 'azaban-nar
+
 class MainController:
     _instance = None
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    def __init__(self,config_path: str):
+    def __init__(self,config_path: str = ""):
         self.config_path = config_path
-        self._Devices = []
+        self._Devices = {}
         self._MqttClient = None
         self._WebServer = None
         self._Environment = None
+        self.IterValue = -1
     def register_device(self, device: 'HardwareInterface'):
         """Регистрация устройства в системе"""
-        DeviceId = f"{device.get_type_name()}_{len(self._devices)}"
-        self._devices[DeviceId] = device
-        print(f"Устройство {DeviceId} зарегистрировано")
+        DeviceId = f"{device.get_type_name()}_{sum(1 for x in self._Devices.values() if x.get_type_connect() == device.get_type_connect())}"
+        self._Devices[DeviceId] = device
         return DeviceId
     def get_system_status(self) -> dict:
         """Получение статуса всей системы"""
         return {
-            'devices_count': len(self._devices),
-            'devices_online': sum(1 for d in self._devices.values() if d.get_connect_status()),
+            'devices_count': len(self._Devices),
+            'devices_online': sum(1 for d in self._Devices.values() if d.get_connect_status()),
             'environment': self._environment.get_snapshot() if self._environment else None,
             }
     def __CheckDevice():
         pass
+    def __len__(self):
+        return len(self._Devices)
+    def get_active_connect(self):
+        return sum(1 for x in self._Devices.values() if x.get_connect_status())
+    def __getitem__(self, key):
+        return self._Devices[key] if key in self._Devices else None
+    def __next__(self):
+        if self.IterValue + 1 < len(self._Devices):
+            self.IterValue+=1
+            return list(self._Devices)[self.IterValue]
+        else:
+            raise StopIteration
+    def __iter__(self):
+       self.IterValue = -1
+       return self
         
 
 class HardwareInterface:
@@ -65,7 +81,10 @@ class HardwareInterface:
     def get_connect_status(self):
         """Получение статуса подключения"""
         return self.__StatusConnect
-
+    def get_type_name(self):
+        return self.__TypeConnect
+    def get_type_connect(self):
+        return self.__TypeConnect
 class EnvironmentState:
     __Data ={
     'temperature_outdoor': 0.0,
@@ -94,4 +113,4 @@ class EnvironmentState:
     def update_from_web(self, weather_api_data: dict):
         """Обновление данных из веб-сервиса погоды"""
         pass
-    
+
