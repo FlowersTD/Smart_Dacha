@@ -1,3 +1,7 @@
+# Bismillahir Rahmanir Rahim
+# Rabbana atina fid-dunya hasanatan 
+# wa fil-akhirati hasanatan 
+# wa qina 'azaban-nar
 class MainController:
     _instance = None
     def __new__(cls):
@@ -6,7 +10,7 @@ class MainController:
         return cls._instance
     def __init__(self,config_path: str):
         self.config_path = config_path
-        self._Devices = {}
+        self._Devices = []
         self._MqttClient = None
         self._WebServer = None
         self._Environment = None
@@ -70,7 +74,7 @@ class EnvironmentState:
     'luminosity': 0.0,
     'time_of_day': "",
     'season': "",
-    'pressure': 760.0,
+    'pressure': 0.0,
     'wind_speed': 0.0
     }
     def __init__(self, NewDataSensor:dict = None):
@@ -84,7 +88,7 @@ class EnvironmentState:
         print("LOG")
     
     def get_snapshot(self) -> dict:
-        """Получение текущего снимка состояния"""
+        """Получение текущего состояния"""
         return self.__shared_state.copy()
     
     def update_from_web(self, weather_api_data: dict):
