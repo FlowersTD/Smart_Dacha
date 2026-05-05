@@ -4,6 +4,16 @@ import { useState, useEffect } from 'react';
 import { AddDeviceDialog } from '../AddDeviceDialog';
 import { DeviceInfoDialog } from '../DeviceInfoDialog';
 
+interface Device {
+  id: number;
+  name: string;
+  type: string;
+  value: string;
+  status: 'online' | 'offline'; 
+  location: string;
+  connection: string;
+}
+
 const iconMap: Record<string, any> = {
   Thermometer: Thermometer,
   Droplets: Droplets,

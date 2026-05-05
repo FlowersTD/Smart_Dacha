@@ -1,8 +1,11 @@
+from ClassHardwareInterface import *
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-from ClassHardwareInterface import *
+
+
 app = FastAPI()
 
 app.add_middleware(
@@ -14,8 +17,9 @@ app.add_middleware(
 )
 
 MainDevices = MainController()
-MainDevices.register_device(SmartSocket(3,Location="Сарай"))
-MainDevices.register_device(SmartSocket(2,Location="Сарай"))
+MainDevices.register_device(SmartSocket("Wired",Location="Сарай"))
+MainDevices.register_device(SmartSocket("WiFi",Location="Сарай"))
+# MainDevices.__getitem__("WiFi_0").set_power(1.02)
 
 @app.get("/api/devices")
 async def get_data():

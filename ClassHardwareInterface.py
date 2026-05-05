@@ -2,7 +2,12 @@
 # Rabbana atina fid-dunya hasanatan 
 # wa fil-akhirati hasanatan 
 # wa qina 'azaban-nar
-
+class SmartSocketPowerError(Exception):
+    """Кастомное исключение для ошибок установки мощности розетки"""
+    def __init__(self, value, reason):
+        self.value = value
+        self.reason = reason
+        super().__init__(f"Некорректное значение мощности '{value}': {reason}")
 class MainController:
     _instance = None
     def __new__(cls):
@@ -28,7 +33,7 @@ class MainController:
             'devices_online': sum(1 for d in self._Devices.values() if d.get_connect_status()),
             'environment': self._Environment.get_snapshot() if self._Environment else None,
             }
-    def __CheckDevice():
+    def __CheckDevice(self):
         pass
     def __len__(self):
         return len(self._Devices)
@@ -51,27 +56,30 @@ class MainController:
 
 
 
-
-
 class HardwareInterface:
-    __TypeConnectDevice = ["Zigbee","Matter","Wired","WiFi","Ble"]
+    # __TypeConnectDevice = ["Zigbee","Matter","Wired","WiFi","Ble"]
     _TYPE_SENSOR = 0
     _TYPE_ACTUATOR = 1
     _TYPE_CONTROLLER = 2
     _Count = 0
-    def __init__(self,TypeDevice:int = 0,TypeConnect:int = 0,DeviceName: str = "",Location:str = ""):
+    _CountFavorite = 0 
+    _ListLocation = []
+    def __init__(self,TypeDevice:int = 0,TypeConnect:str = "Wired",DeviceName: str = "",Location:str = ""):
         HardwareInterface._Count+=1
         self.id = HardwareInterface._Count
         self.__TypeDevice = TypeDevice
-        self.__TypeConnect = self.__TypeConnectDevice[TypeConnect]
+        self.__TypeConnect = TypeConnect
         self.__State = False
         self.__StatusConnect = True
         self.EnableLimits = True
         self.MinValue = 0
         self.MaxValue = 0
-        self.__Value = None
         self._Device_name=DeviceName
         self._Location = Location
+        self.__Favorite  = False
+        self._VersionSoftware = ""
+        self._TimeWork = ""
+        self.__Value = None
     def __setattr__(self, name, value):
         if name == "__Value" and self.__TypeDevice == self._TYPE_ACTUATOR :
             if self.EnableLimits  and (self.MinValue <= value <= self.MaxValue):
@@ -81,7 +89,6 @@ class HardwareInterface:
                 object.__setattr__(self,name,value)
         elif not(name == "__Value" and self.__TypeDevice == self._TYPE_SENSOR):
             object.__setattr__(self,name,value)
-
     def update_state(self, State):
         """Обновление состояния устройства"""
         if self.__StatusConnect:
@@ -99,16 +106,28 @@ class HardwareInterface:
         return self.__TypeConnect
     def to_dict(self)->dict:
         raise NotImplementedError("Метод to_dict должен быть реализован")
-    def get_value(self):
-        return "---"
+    def get_favorite(self):
+        return self.__Favorite
+    def set_favorite(self):
+        self.__Favorite = not self.__Favorite
+
+
 
 class SmartSocket(HardwareInterface):
-    def __init__(self, Type_connect: int = 0,Device_name = None,Location:str = ""):
+    def __init__(self, Type_connect: str ,Device_name = None,Location:str = ""):
         if Device_name == None:
             Device_name = f"Розетка {HardwareInterface._Count+1}"
         super().__init__(self._TYPE_ACTUATOR, Type_connect,Device_name,Location)
         self.current_power = 0
-        
+        self.__Power = 0
+        self.__AutoShutdown = None
+        self.__Timer = False
+        self.__IP = ""
+        self.__MAC = ""
+    def __setattr__(self, name, value):
+        if isinstance(value, float):
+             raise SmartSocketPowerError(value, f"должен быть числом (int/float), получен {type(value).__name__}")
+        return super().__setattr__(name, value)
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -119,11 +138,13 @@ class SmartSocket(HardwareInterface):
             "location":self._Location,
             "connection":self.get_type_name()
         }   
-    def set_power(self, power: float):
+    def set_power(self, power: int = 0):
         """Установка мощности"""
         self.current_power = power
+    
+
 class SmartGate(HardwareInterface):
-    def __init__(self, Type_connect: int = 0,Device_name = None,Location:str = ""):
+    def __init__(self, Type_connect: str,Device_name = None,Location:str = ""):
         if not Device_name :
             Device_name = f"Ворота {HardwareInterface._Count+1}"
         super().__init__(self._TYPE_ACTUATOR, Type_connect, Device_name,Location)
