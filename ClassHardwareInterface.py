@@ -8,6 +8,7 @@ class SmartSocketPowerError(Exception):
         self.value = value
         self.reason = reason
         super().__init__(f"Некорректное значение мощности '{value}': {reason}")
+
 class MainController:
     _instance = None
     def __new__(cls):
@@ -53,8 +54,6 @@ class MainController:
     def get_devices_json(self) -> list:
         """Получение JSON-списка"""
         return [device.to_dict() for device in self._Devices.values()]
-
-
 
 class HardwareInterface:
     # __TypeConnectDevice = ["Zigbee","Matter","Wired","WiFi","Ble"]
@@ -111,8 +110,6 @@ class HardwareInterface:
     def set_favorite(self):
         self.__Favorite = not self.__Favorite
 
-
-
 class SmartSocket(HardwareInterface):
     def __init__(self, Type_connect: str ,Device_name = None,Location:str = ""):
         if Device_name == None:
@@ -142,7 +139,6 @@ class SmartSocket(HardwareInterface):
         """Установка мощности"""
         self.current_power = power
     
-
 class SmartGate(HardwareInterface):
     def __init__(self, Type_connect: str,Device_name = None,Location:str = ""):
         if not Device_name :

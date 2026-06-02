@@ -63,21 +63,25 @@ class PlantProfile:
             "min_humidity": self.min_humidity,
             "max_humidity": self.max_humidity
         }
-
+    
 class EventLogger:
-    __shared_attrs = {
-        'data': [],
-        'date': [],
-        'info': []
+    __shared_state = {
+        'logs': []
     }
 
     def __init__(self):
-        self.__dict__ = self.__shared_attrs
+        self.__dict__ = self.__shared_state
 
-    def get_log(self):
-        return self.info
+    def add_log(self, event: str, date: str, level: str = "info"):
+        log_entry = {
+            "date": date,
+            "event": event,
+            "level": level
+        }
+        self.logs.append(log_entry)
 
-    def add_log(self, event, date):
-        self.data.append(event)
-        self.date.append(date)
-        self.info.append(date + ' - ' + event)
+    def get_logs_as_dict(self, limit: int = 50):
+        if limit > 0:
+            return self.logs[-limit:]
+        else:
+            return self.logs
