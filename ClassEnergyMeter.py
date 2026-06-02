@@ -2,6 +2,8 @@
 class EnergyMeterError(Exception):
     #Исключение для ошибок EnergyMeter
     pass
+import json
+from typing import Optional, List
 
 
 class EnergyMeter:
@@ -63,20 +65,25 @@ class PlantProfile:
             "min_humidity": self.min_humidity,
             "max_humidity": self.max_humidity
         }
-    
+
+
 class EventLogger:
     __shared_state = {
         'logs': []
     }
 
     def __init__(self):
+        self.logs = None
         self.__dict__ = self.__shared_state
 
-    def add_log(self, event: str, date: str, level: str = "info"):
+    def add_log(self, id:int, type: str, message: str, device: str, time: str, timestamp: str):
         log_entry = {
-            "date": date,
-            "event": event,
-            "level": level
+            "id": id,
+            "type": type,
+            "message": message,
+            "device": device,
+            "time": time,
+            "timestamp": timestamp
         }
         self.logs.append(log_entry)
 
@@ -85,3 +92,15 @@ class EventLogger:
             return self.logs[-limit:]
         else:
             return self.logs
+
+    def save_to_json(self, filename: str, limit: Optional[int] = None):
+        logs_to_save = self.get_logs_as_dict(limit) if limit else self.logs
+        with open(filename, "w",encoding = "utf-8") as f:
+            json.dump(logs_to_save, f, ensure_ascii=False, indent=4)
+
+    def load_from_json(self, filename: str):
+        with open(filename, "r", encoding = "utf-8") as f:
+            self.logs = json.load(f)
+
+    def clear_logs(self):
+        self.logs.clear()
